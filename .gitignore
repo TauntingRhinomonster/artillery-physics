@@ -1,0 +1,11 @@
+# Ignore node modules
+node_modules/
+
+# Ignore environment variables
+.env
+
+# Ignore macOS system files
+.DS_Store
+
+# Other stuff
+sprint-time-log.md
