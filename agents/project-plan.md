@@ -8,7 +8,7 @@ The following is the plan for how I am creating the artillery physics game using
 * **Hitting the Rubric:** This is where you define your Variables, Arrays (to store past attempts), and Tuples (e.g., storing a 2D vector as `[number, number]`).
 * **The Stretch Goal:** Writing the logic that throws an Exception if the user tries to fire with a negative velocity or an angle outside of 0 to 90 degrees.
 
-## Phase 2: The Physics Engine (Hours 4–6)
+## Phase 2: The Physics Engine (Hours 4–6)+
 
 * **The Math:** Translating standard kinematics into code. You get to flex your math skills by calculating the $X$ and $Y$ positions over time ($t$):
 * Horizontal: $x(t) = v_0 \cos(\theta) t$
@@ -34,5 +34,5 @@ You aren't learning how to program from scratch; you are just learning how to tr
 
 Since you are prioritizing the algorithm over the visuals, how do you want to handle the output to start with—would you prefer to try drawing simple dots on an HTML Canvas, or just log the $X$ and $Y$ coordinates to the screen as text to verify the math first?
 
-
+ 
 https://github.com/TauntingRhinomonster/artillery-physics.git
