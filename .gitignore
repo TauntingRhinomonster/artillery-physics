@@ -1,11 +1,31 @@
-# Ignore node modules
-node_modules/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Ignore environment variables
+# Dependencies and Build
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment Variables
 .env
 
-# Ignore macOS system files
-.DS_Store
-
-# Other stuff
+# Custom Project Files
 sprint-time-log.md
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
