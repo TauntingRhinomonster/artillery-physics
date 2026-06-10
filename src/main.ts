@@ -1,61 +1,91 @@
 import './style.css'
-import typescriptLogo from './assets/typescript.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import { setupCounter } from './counter.ts'
 import { Projectile } from './classes/Projectile.ts'
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+const WIDTH = 50;
+const HEIGHT = 20;
+const GRID_SCALE = 15; // meters per character (passed to Projectile constructor)
+const PHYSICS_DELTA = 0.05;
+const FRAME_DELAY_MS = 20;
 
-<div class="ticks"></div>
+const fireBtn = document.querySelector<HTMLButtonElement>('#fire-btn')!;
+const angleInput = document.querySelector<HTMLInputElement>('#angle')!;
+const weightInput = document.querySelector<HTMLInputElement>('#weight')!;
+const dragInput = document.querySelector<HTMLInputElement>('#drag-coefficient')!;
+const powerInput = document.querySelector<HTMLInputElement>('#power')!;
+const display = document.querySelector<HTMLPreElement>('#trajectory-display')!;
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://www.typescriptlang.org" target="_blank">
-          <img class="button-icon" src="${typescriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+function createEmptyGrid(): string[][] {
+    const grid: string[][] = [];
+    for (let y = 0; y < HEIGHT; y++) {
+        grid.push(new Array(WIDTH).fill(' '));
+    }
+    return grid;
+}
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+function renderGrid(grid: string[][]): void {
+    const rows = grid.map((row) => '|' + row.join('') + '|');
+    const ground = '+' + '-'.repeat(WIDTH) + '+';
+    display.textContent = rows.join('\n') + '\n' + ground;
+}
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+let isAnimating = false;
+
+async function fireProjectile(): Promise<void> {
+    if (isAnimating) return;
+
+    const angle = Number(angleInput.value);
+    const weight = Number(weightInput.value);
+    const dragCoefficient = Number(dragInput.value);
+    const power = Number(powerInput.value);
+
+    if (angle < 0 || angle > 90) {
+        display.textContent = 'Angle must be between 0 and 90 degrees.';
+        return;
+    }
+    if (weight <= 0) {
+        display.textContent = 'Weight must be greater than 0 kg.';
+        return;
+    }
+    if (dragCoefficient < 0) {
+        display.textContent = 'Drag coefficient cannot be negative.';
+        return;
+    }
+    if (power <= 0) {
+        display.textContent = 'Power must be greater than 0 N.';
+        return;
+    }
+
+    isAnimating = true;
+    fireBtn.disabled = true;
+    fireBtn.textContent = 'In flight...';
+
+    const grid = createEmptyGrid();
+    const shot = new Projectile(angle, PHYSICS_DELTA, weight, dragCoefficient, power, GRID_SCALE);
+
+    shot.drawToGrid(grid, WIDTH, HEIGHT, '*');
+    shot.drawToGrid(grid, WIDTH, HEIGHT, '@');
+    renderGrid(grid);
+
+    while (shot.getPositoin()[1] >= 0) {
+        await sleep(FRAME_DELAY_MS);
+
+        shot.updatePhysics(dragCoefficient, PHYSICS_DELTA);
+        shot.drawToGrid(grid, WIDTH, HEIGHT, '*');
+        shot.drawToGrid(grid, WIDTH, HEIGHT, '@');
+        renderGrid(grid);
+    }
+
+    fireBtn.disabled = false;
+    fireBtn.textContent = 'Fire!';
+    isAnimating = false;
+}
+
+fireBtn.addEventListener('click', () => {
+    void fireProjectile();
+});
+
+display.textContent = `Ready. Grid: ${WIDTH * GRID_SCALE}m wide × ${HEIGHT * GRID_SCALE}m tall.\nPress Fire! to launch.`;
